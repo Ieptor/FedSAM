@@ -21,8 +21,8 @@ from utils.cutout import Cutout
 from utils.main_utils import *
 from utils.model_utils import read_data
 
-os.environ["WANDB_API_KEY"] = ""
-os.environ["WANDB_MODE"] = "offline"
+os.environ["WANDB_API_KEY"] = "91e7b212a8b9041cd0a6cc274f36f4832ed6c602"
+os.environ["WANDB_MODE"] = "online"
 
 def main():
     args = parse_args()
@@ -35,6 +35,7 @@ def main():
     torch.cuda.manual_seed(args.seed)
     torch.cuda.manual_seed_all(args.seed)
 
+    
     # CIFAR: obtain info on parameter alpha (Dirichlet's distribution)
     alpha = args.alpha
     if alpha is not None:
@@ -106,6 +107,19 @@ def main():
     train_clients, test_clients = setup_clients(args, client_model, Client, ClientDataset, run, device)
     train_client_ids, train_client_num_samples = server.get_clients_info(train_clients)
     test_client_ids, test_client_num_samples = server.get_clients_info(test_clients)
+
+    """
+    FedVC personal contribution
+    """
+    if args.sizeVC != 0:
+      #Proportional to the number of examples (FedVC)
+      p_clients = np.array([len(client.dataset) for client in train_clients])
+      p_clients = p_clients / p_clients.sum()
+    else:
+      p_clients = 0
+
+
+      
     if set(train_client_ids) == set(test_client_ids):
         print('Clients in Total: %d' % len(train_clients))
     else:
@@ -152,9 +166,15 @@ def main():
         print('--- Round %d of %d: Training %d Clients ---' % (i + 1, num_rounds, clients_per_round))
         fp.write('--- Round %d of %d: Training %d Clients ---\n' % (i + 1, num_rounds, clients_per_round))
 
+
+
         # Select clients to train during this round
-        server.select_clients(i, online(train_clients), num_clients=clients_per_round)
+        server.select_clients(i, online(train_clients), p_clients, num_clients=clients_per_round)
         c_ids, c_num_samples = server.get_clients_info(server.selected_clients)
+
+  
+
+
         print("Selected clients:", c_ids)
 
         if args.swa and i >= swa_start:
@@ -234,6 +254,9 @@ def create_clients(users, train_data, test_data, model, args, ClientDataset, Cli
     client_params['model'] = model
     client_params['run'] = run
     client_params['device'] = device
+
+    client_params['sizeVC'] = args.sizeVC
+
     for u in users:
         c_traindata = ClientDataset(train_data[u], train=True, loading=args.where_loading, cutout=Cutout if args.cutout else None)
         c_testdata = ClientDataset(test_data[u], train=False, loading=args.where_loading, cutout=None)
@@ -259,6 +282,7 @@ def setup_clients(args, model, Client, ClientDataset, run=None, device=None,):
     test_clients = create_clients(test_users, train_data, test_data, model, args, ClientDataset, Client, run, device)
 
     return train_clients, test_clients
+
 
 def get_client_and_server(server_path, client_path):
     mod = importlib.import_module(server_path)
@@ -319,7 +343,7 @@ def init_wandb(args, alpha=None, run_id=None):
     run = wandb.init(
                 id = id,
                 # Set entity to specify your username or team name
-                entity="federated-learning",
+                #entity="federated-learning",
                 # Set the project where this run will be logged
                 project='fl_' + args.dataset,
                 group=group_name,

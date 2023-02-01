@@ -24,7 +24,7 @@ class Server:
 
     #################### METHODS FOR FEDERATED ALGORITHM ####################
 
-    def select_clients(self, my_round, possible_clients, num_clients=20):
+    def select_clients(self, my_round, possible_clients, p_clientsVC, num_clients=20):
         """Selects num_clients clients randomly from possible_clients.
 
         Note that within function, num_clients is set to
@@ -34,13 +34,14 @@ class Server:
             possible_clients: Clients from which the servers can select.
             num_clients: Number of clients to select; default 20.
             my_round: Current round.
+            p_clientsVC: used for FedVC, changes choice probability depending on the client dataset size
         Return:
             list of (num_train_samples, num_test_samples)
         """
 
         num_clients = min(num_clients, len(possible_clients))
         np.random.seed(my_round)
-        self.selected_clients = np.random.choice(possible_clients, num_clients, replace=False)
+        self.selected_clients = np.random.choice(possible_clients, num_clients, replace=False, p=p_clientsVC)
         return [(c.num_train_samples, c.num_test_samples) for c in self.selected_clients]
 
     def train_model(self, num_epochs=1, batch_size=10, minibatch=None, clients=None, analysis=False):

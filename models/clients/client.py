@@ -13,8 +13,9 @@ from datetime import datetime
 
 class Client:
 
-    def __init__(self, seed, client_id, lr, weight_decay, batch_size, momentum, train_data, eval_data, model, device=None,
+    def __init__(self, seed, client_id, lr, weight_decay, batch_size, momentum, train_data, eval_data, model, sizeVC, device=None,
                  num_workers=0, run=None, mixup=False, mixup_alpha=1.0):
+
         self._model = model
         self.id = client_id
         self.train_data = train_data
@@ -34,6 +35,11 @@ class Client:
         self.mixup = mixup
         self.mixup_alpha = mixup_alpha # α controls the strength of interpolation between feature-target pairs
 
+        #setting size of virtual clients
+        self.sizeVC = sizeVC
+
+    
+
     def train(self, num_epochs=1, batch_size=10, minibatch=None):
         """Trains on self.model using the client's train_data.
 
@@ -46,6 +52,22 @@ class Client:
             num_samples: number of samples used in training
             update: state dictionary of the trained model
         """
+
+        """
+        FedVC implementation for personal contribution
+        """
+
+        if self.sizeVC != 0:
+            #Check if len of training set is bigger or smaller then the vc size
+            if self.sizeVC < len(self.train_data):
+                trainset_vc_indexes = torch.randperm(len(self.train_data))[:self.sizeVC]   #Keeping only sizeVC random elements
+            else: #size of VCs bigger then the dataset
+                trainset_vc_indexes = torch.randint(len(self.train_data), (self.sizeVC,))
+
+            self.train_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(self.train_data, trainset_vc_indexes), batch_size=self.train_bs, shuffle=True)
+        
+
+
         # Train model
         criterion = nn.CrossEntropyLoss().to(self.device)
         optimizer = optim.SGD(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay, momentum=self.momentum)

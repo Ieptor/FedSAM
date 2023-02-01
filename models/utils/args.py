@@ -48,6 +48,10 @@ def parse_args():
                         help='seed for random client sampling and batch splitting;',
                         type=int,
                         default=0)
+    parser.add_argument('--sizeVC',
+                        help='number of virtualized clients (FedVC)',
+                        type=int,
+                        default=0)
 
     ## SERVER OPTMIZER ##
     parser.add_argument('--server-opt',
