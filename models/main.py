@@ -113,10 +113,10 @@ def main():
     """
     if args.sizeVC != 0:
       #Proportional to the number of examples (FedVC)
-      p_clients = np.array([len(client.dataset) for client in train_clients])
+      p_clients = np.array([len(client.train_data) for client in train_clients])
       p_clients = p_clients / p_clients.sum()
     else:
-      p_clients = 0
+      p_clients = None
 
 
       

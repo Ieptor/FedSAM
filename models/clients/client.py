@@ -64,7 +64,7 @@ class Client:
             else: #size of VCs bigger then the dataset
                 trainset_vc_indexes = torch.randint(len(self.train_data), (self.sizeVC,))
 
-            self.train_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(self.train_data, trainset_vc_indexes), batch_size=self.train_bs, shuffle=True)
+            self.trainloader = torch.utils.data.DataLoader(torch.utils.data.Subset(self.train_data, trainset_vc_indexes), batch_size=batch_size, shuffle=True)
         
 
 
