@@ -21,6 +21,14 @@ from utils.cutout import Cutout
 from utils.main_utils import *
 from utils.model_utils import read_data
 
+
+
+import torchvision
+from fedlab.utils.dataset.partition import CIFAR100Partitioner
+from fedlab.utils.functional import partition_report, save_dict
+
+import sys
+
 os.environ["WANDB_API_KEY"] = "91e7b212a8b9041cd0a6cc274f36f4832ed6c602"
 os.environ["WANDB_MODE"] = "online"
 
@@ -399,6 +407,103 @@ def print_metrics(metrics, weights, fp, prefix=''):
         # fp.write("Clients losses:", ordered_metric)
         metrics_values.append(np.average(ordered_metric, weights=ordered_weights))
     return metrics_values
+
+
+
+
+"""
+Personal Contribution
+"""
+
+def split_dataset():
+    
+    #training
+    
+    trainset = torchvision.datasets.CIFAR100(root="./dataset/train/", train=True, download=True)
+    
+    dirichlet_05_dataset = CIFAR100Partitioner(trainset.targets,
+                                     100,
+                                     balance=None,
+                                     partition="dirichlet",
+                                     dir_alpha=0.5,
+                                     seed=2023)
+    
+    dirichlet_0_dataset = CIFAR100Partitioner(trainset.targets,
+                                     100,
+                                     balance=None,
+                                     partition="dirichlet",
+                                     dir_alpha=0,
+                                     seed=2023)
+    
+    dirichlet_1000_dataset = CIFAR100Partitioner(trainset.targets,
+                                     100,
+                                     balance=None,
+                                     partition="dirichlet",
+                                     dir_alpha=1000,
+                                     seed=2023)
+     
+    csv_file05 = "./dataset/partitions/cifar100_train05.csv"
+    partition_report(trainset.targets, dirichlet_05_dataset.client_dict,
+                 class_num=100,
+                 verbose=False, file=csv_file05)
+    
+    csv_file0 = "./dataset/partitions/cifar100_train0.csv"
+    partition_report(trainset.targets, dirichlet_0_dataset.client_dict,
+                 class_num=100,
+                 verbose=False, file=csv_file0)
+    
+     
+    csv_file1000 = "./dataset/partitions/cifar100_train1000.csv"
+    partition_report(trainset.targets, dirichlet_1000_dataset.client_dict,
+                 class_num=100,
+                 verbose=False, file=csv_file1000)
+    
+    
+    #test
+    testset = torchvision.datasets.CIFAR100(root="./dataset/test/", train=False, download=True)
+    
+    dirichlet_05_testset = CIFAR100Partitioner(testset.targets,
+                                     100,
+                                     balance=None,
+                                     partition="dirichlet",
+                                     dir_alpha=0.5,
+                                     seed=2023)
+    
+    dirichlet_0_testset = CIFAR100Partitioner(testset.targets,
+                                     100,
+                                     balance=None,
+                                     partition="dirichlet",
+                                     dir_alpha=0,
+                                     seed=2023)
+    
+    dirichlet_1000_testset = CIFAR100Partitioner(testset.targets,
+                                     100,
+                                     balance=None,
+                                     partition="dirichlet",
+                                     dir_alpha=1000,
+                                     seed=2023)
+     
+    csv_file05_test = "./dataset/partitions/cifar100_train05.csv"
+    partition_report(testset.targets, dirichlet_05_testset.client_dict,
+                 class_num=100,
+                 verbose=False, file=csv_file05_test)
+    
+    csv_file0_test = "./dataset/partitions/cifar100_train0.csv"
+    partition_report(testset.targets, dirichlet_0_testset.client_dict,
+                 class_num=100,
+                 verbose=False, file=csv_file0_test)
+    
+     
+    csv_file1000_test = "./dataset/partitions/cifar100_train1000.csv"
+    partition_report(testset.targets, dirichlet_1000_testset.client_dict,
+                 class_num=100,
+                 verbose=False, file=csv_file1000_test)
+
+
+    hetero_dir_part_df = pd.read_csv(csv_file05,header=1)
+    print(hetero_dir_part_df)
+
+
 
 
 if __name__ == '__main__':
