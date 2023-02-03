@@ -59,7 +59,7 @@ class Client:
 
         if self.sizeVC != 0:
             #Check if len of training set is bigger or smaller then the vc size
-            if self.sizeVC < len(self.train_data):
+            if self.sizeVC <= len(self.train_data):
                 trainset_vc_indexes = torch.randperm(len(self.train_data))[:self.sizeVC]   #Keeping only sizeVC random elements
             else: #size of VCs bigger then the dataset
                 trainset_vc_indexes = torch.randint(len(self.train_data), (self.sizeVC,))
