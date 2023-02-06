@@ -14,3 +14,7 @@ https://github.com/s303880/FedSAM/blob/master/models/clients/client.py#L60
 
 Experiments of FedAVG and FedVC:
 https://github.com/s303880/FedSAM/blob/master/paper_experiments/cifar100.sh
+
+
+Modified JSONs (for unbalanced clients)
+https://github.com/s303880/FedSAM/tree/master/data/cifar100/data/train
